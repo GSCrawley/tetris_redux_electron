@@ -3,10 +3,35 @@ import { connect } from 'react-redux'
 import { moveDown, moveLeft, moveRight, rotate } from '../actions'
 
 class Controls extends Component {
+  constructor(props) {
+    super(props) 
+    window.addEventListener('keydown', (e) => {
+      this.checkKey(e)
+      console.log("it's working!")
+    })    
+  }
 
+  checkKey(e) {
+    console.log(e.keyCode)
+    
+        e = e || window.event;
+    
+        if (e.keyCode === 38) {
+          this.props.rotate()
+            }
+        else if (e.keyCode === 40) {
+          this.props.moveDown()
+        }
+        else if (e.keyCode === 37) {
+          this.props.moveLeft()
+        }
+        else if (e.keyCode === 39) {
+          this.props.moveRight()
+        }
+    
+    }
   render() {
     const { isRunning, gameOver } = this.props
-
     return (
     <div className="controls">
     {/* left */}
