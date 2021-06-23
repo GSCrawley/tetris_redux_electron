@@ -1,15 +1,38 @@
 {
+  "author": {
+    "name": "Gideon Crawley",
+    "email": "gideon.crawley@students.makeschool.com",
+    "url": "https://GSCrawley.github.io/gideoncrawley"
+  },
+  "build": {
+    "appId": "com.my-website.my-app",
+    "productName": "BlockStack",
+    "copyright": "Copyright © 2021 ${author}",
+    "mac": {
+      "category": "public.app-category.utilities"
+    },
+    "files": [
+      "build/**/*",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    }
+  },
   "name": "react_redux_tetris",
   "main": "public/electron.js",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://gscrawley.github.io/react_redux_tetris/",
+  "homepage": "./",
   "devDependencies": {
+    "@rescripts/cli": "^0.0.16",
+    "@rescripts/rescript-env": "^0.0.14",
     "concurrently": "^6.2.0",
     "electron": "^13.1.2",
     "electron-builder": "^22.11.7",
     "gh-pages": "^2.2.0",
     "react-scripts": "3.4.1",
+    "typescript": "^4.3.4",
     "wait-on": "^5.3.0"
   },
   "dependencies": {
@@ -31,7 +54,10 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "electron-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\""
+    "electron-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\"",
+    "postinstall": "electron-builder install-app-deps",
+    "preelectron-pack": "yarn build",
+    "electron-pack": "electron-builder -mw"
   },
   "eslintConfig": {
     "extends": "react-app"
