@@ -3,7 +3,8 @@
 to run, use 
 ### `yarn electron-dev`
 
-### to move blocks, `use arrow keys`
+to move blocks,
+###  `use arrow keys`
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
