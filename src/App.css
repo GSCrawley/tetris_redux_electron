@@ -1,27 +1,211 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #282c34;
+  height: 100vh;
+  overflow: hidden;
+}
+
 .App {
   text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 10vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
   color: white;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.App-header {
+  margin-bottom: 15px;
+}
+
+.App-header h1 {
+  color: #61dafb;
+  font-size: 2.5em;
+  margin: 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.grid-board {
+  display: grid;
+  grid-template-columns: repeat(10, 25px);
+  grid-gap: 0;
+  background-color: #1a1a1a;
+  padding: 5px;
+  border-radius: 10px;
+  border: 2px solid #61dafb;
+  box-shadow: 0 0 20px rgba(97, 218, 251, 0.2);
+}
+
+.grid-square {
+  width: 25px;
+  height: 25px;
+  border: 1px solid rgba(51, 51, 51, 0.8);
+  border-radius: 3px;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.grid-square.clearing {
+  z-index: 2;
+  border-color: rgba(255, 255, 255, 0.8);
+  transform-origin: center;
+  filter: brightness(2);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+}
+
+.game-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 270px;
+  padding: 8px 15px;
+  background-color: rgba(26, 26, 26, 0.8);
+  border-radius: 8px;
+  border: 1px solid #61dafb;
+  box-sizing: border-box;
+}
+
+.game-stats {
+  display: flex;
+  gap: 15px;
+  font-size: 0.9em;
+  color: #61dafb;
+  letter-spacing: 0.5px;
+}
+
+.controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.control-icon {
+  background: none;
+  border: none;
+  color: #61dafb;
+  cursor: pointer;
+  padding: 4px;
+  font-size: 1em;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.control-icon:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.control-icon.active {
+  opacity: 1;
+  color: #fff;
+  text-shadow: 0 0 10px #61dafb;
+}
+
+.combo-indicator {
+  color: #ffd700;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.combo-indicator {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: #61dafb;
+  color: #282c34;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-weight: bold;
+  animation: pulse 0.5s ease-in-out infinite alternate;
+}
+
+.power-ups-container {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.power-ups-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.power-up-indicator {
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: 2px solid #61dafb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8em;
+}
+
+.power-up-indicator {
+  background-color: rgba(97, 218, 251, 0.2);
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #61dafb;
+  display: flex;
+  justify-content: space-between;
+  min-width: 150px;
+}
+
+.power-up-indicator span:last-child {
+  color: #ffd700;
+}
+
+.game-over {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.9);
+  padding: 40px;
+  border-radius: 20px;
+  border: 3px solid #ff6b6b;
+  text-align: center;
+}
+
+.game-over {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.9);
+  padding: 40px;
+  border-radius: 10px;
+  border: 2px solid #61dafb;
+  text-align: center;
+}
+
+.game-over h2 {
+  color: #ff6b6b;
+  margin-top: 0;
 }
 
 .App-link {
@@ -34,5 +218,14 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.1);
   }
 }

@@ -18,7 +18,7 @@ class GridBoard extends Component {
   // generates an array of 18 rows, each containing 10 GridSquares.
   makeGrid() {
     // collect properties mapped to props from state.
-    const { grid, shape, rotation, x, y } = this.props
+    const { grid, shape, rotation, x, y, completedRows } = this.props
     // get the block which is the current shape the player is controlling
     const block = shapes[shape][rotation]
     const blockColor = shape
@@ -34,16 +34,20 @@ class GridBoard extends Component {
         // Map current falling block to grid.
         // For any squares that fall on the grid we need to look at the block array and see if there is a 1 in this case we use the block color.
         if (blockX >= 0 && blockX < block.length && blockY >= 0 && blockY < block.length) {
-          color = block[blockY][blockX] === 0 ? color : blockColor
+          if (block[blockY][blockX] !== 0) {
+            color = blockColor
+          }
         }
         // Generate a unique key for every block
         const k = row * grid[0].length + col;
         // Generate a grid square
+        const isClearing = completedRows && completedRows.includes(row);
         return <GridSquare
                 key={k}
-                square={square}
-                color={color}>{square}
-              </GridSquare>
+                color={color}
+                square={color}
+                isClearing={isClearing}
+              />
       })
     })
   }
@@ -99,7 +103,8 @@ const mapStateToProps = (state) => {
     x: state.game.x,
     y: state.game.y,
     speed: state.game.speed,
-    isRunning: state.game.isRunning
+    isRunning: state.game.isRunning,
+    completedRows: state.game.completedRows
   }
 }
 
@@ -112,4 +117,3 @@ const mapDispatchToProps = () => {
 
 // Connect the component to redux
 export default connect(mapStateToProps, mapDispatchToProps())(GridBoard)
-// export default GridBoard

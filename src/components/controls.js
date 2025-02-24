@@ -1,79 +1,77 @@
-import React, { Component } from 'react'
-import { connect } from 'react-redux'
-import { moveDown, moveLeft, moveRight, rotate } from '../actions'
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { moveLeft, moveRight, moveDown, rotate, pause, resume, restart } from '../actions';
 
-class Controls extends Component {
-  constructor(props) {
-    super(props) 
-    window.addEventListener('keydown', (e) => {
-      this.checkKey(e)
-      console.log("it's working!")
-    })    
-  }
+function Controls() {
+  const dispatch = useDispatch();
+  const isRunning = useSelector(state => state.game.isRunning);
 
-  checkKey(e) {
-    console.log(e.keyCode)
-    
-        e = e || window.event;
-    
-        if (e.keyCode === 38) {
-          this.props.rotate()
-            }
-        else if (e.keyCode === 40) {
-          this.props.moveDown()
-        }
-        else if (e.keyCode === 37) {
-          this.props.moveLeft()
-        }
-        else if (e.keyCode === 39) {
-          this.props.moveRight()
-        }
-    
-    }
-  render() {
-    const { isRunning, gameOver } = this.props
-    return (
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!isRunning) return;
+
+      switch (e.keyCode) {
+        case 37: // Left
+          dispatch(moveLeft());
+          break;
+        case 39: // Right
+          dispatch(moveRight());
+          break;
+        case 40: // Down
+          dispatch(moveDown());
+          break;
+        case 38: // Up
+          dispatch(rotate());
+          break;
+        default:
+          break;
+      }
+    };
+
+    const handleKeyPress = (e) => {
+      switch (e.key.toLowerCase()) {
+        case 'p':
+          if (isRunning) {
+            dispatch(pause());
+          } else {
+            dispatch(resume());
+          }
+          break;
+        case 'r':
+          dispatch(restart());
+          break;
+        default:
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keypress', handleKeyPress);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keypress', handleKeyPress);
+    };
+  }, [dispatch, isRunning]);
+
+  return (
     <div className="controls">
-    {/* left */}
-    <button className="control-button" onClick={(e) => {
-        console.log(isRunning, gameOver)
-        if (!isRunning || gameOver) { return }
-        this.props.moveLeft()
-    }}>Left</button>
-
-    {/* right */}
-    <button className="control-button" onClick={(e) => {
-        if (!isRunning || gameOver) { return }
-        this.props.moveRight()
-    }}>Right</button>
-
-    {/* rotate */}
-    <button className="control-button" onClick={(e) => {
-        if (!isRunning || gameOver) { return }
-        this.props.rotate()
-    }}>Rotate</button>
-
-    {/* down */}
-    <button className="control-button" onClick={(e) => {
-        if (!isRunning || gameOver) { return }
-        this.props.moveDown()
-    }}>Down</button>
-  </div>
-  )
-  }
-  }
-  const mapStateToProps = (state) => {
-    return {
-      isRunning: state.game.isRunning,
-      gameOver: state.game.gameOver
-    }
-  }
-  const mapDispatchToProps = () => {
-    return {
-        moveRight,
-        moveLeft,
-        moveDown,
-        rotate
-  }
+      <button 
+        className={`control-icon ${!isRunning ? 'active' : ''}`}
+        onClick={() => isRunning ? dispatch(pause()) : dispatch(resume())}
+        title={isRunning ? 'Pause' : 'Resume'}
+      >
+        <i className={`fas ${isRunning ? 'fa-pause' : 'fa-play'}`}></i>
+      </button>
+      <button 
+        className="control-icon"
+        onClick={() => dispatch(restart())}
+        title="Restart"
+      >
+        <i className="fas fa-redo"></i>
+      </button>
+    </div>
+  );
 }
-export default connect(mapStateToProps, mapDispatchToProps())(Controls)
+
+export default Controls;

@@ -1,97 +1,137 @@
-import {
-    MOVE_RIGHT, MOVE_LEFT, MOVE_DOWN, ROTATE,
-    PAUSE, RESUME, RESTART, GAME_OVER
-  } from '../actions'
+import { createSlice } from '@reduxjs/toolkit';
+import { defaultState, canMoveTo, nextRotation, addBlockToGrid, checkRows, randomShape } from '../utils';
 
-import {
-  defaultState,
-  nextRotation,
-  canMoveTo,
-  addBlockToGrid,
-  checkRows,
-  // randomShape
-} from '../utils'
-  
-const gameReducer = (state = defaultState(), action) => {
-  const { shape, grid, x, y, rotation, nextShape, score, isRunning } = state
-  
-    switch(action.type) {
-      case ROTATE:
-        const newRotation = nextRotation(shape, rotation)
-        if (canMoveTo(shape, grid, x, y, newRotation)) {
-            return { ...state, rotation: newRotation }
-        }
-        return state
-  
-      case MOVE_RIGHT:
-        if (canMoveTo(shape, grid, x + 1, y, rotation)) {
-          return { ...state, x: x + 1 }
-        }
-        return state
-  
-      case MOVE_LEFT:
-        // subtract 1 from the x and check if this new position is possible by calling `canMoveTo()
-        if (canMoveTo(shape, grid, x - 1, y, rotation)) {
-            return { ...state, x: x - 1 }
-        }
-        return state
-  
-      case MOVE_DOWN:
-        // Get the next potential Y position
-        const maybeY = y + 1
-          
-        // Check if the current block can move here
-        if (canMoveTo(shape, grid, x, maybeY, rotation)) {
-            // If so move down don't place the block
-            return { ...state, y: maybeY }
-        }
-          
-        // If not place the block
-        // (this returns an object with a grid and gameover bool)
-        const obj = addBlockToGrid(shape, grid, x, y, rotation)
-        const newGrid = obj.grid
-        const gameOver = obj.gameOver
-          
-        if (gameOver) {
-          // Game Over
-          const newState = { ...state }
-          newState.shape = 0
-          newState.grid = newGrid
-          return { ...state, gameOver: true }
-        }
-          
-        // reset somethings to start a new shape/block
-        const newState = defaultState()
-        newState.grid = newGrid
-        newState.shape = nextShape
-        newState.score = score
-        newState.isRunning = isRunning
-                    
-        // TODO: Check and Set level
-        // Score increases decrease interval
-        newState.score = score + checkRows(newGrid)
-          
-        return newState
-          
-  
-      case RESUME:
-        return { ...state, isRunning: true }
-        
-      case PAUSE:
-        
-        return { ...state, isRunning: false }
+const gameSlice = createSlice({
+  name: 'game',
+  initialState: defaultState(),
+  reducers: {
+    moveRight: (state) => {
+      if (canMoveTo(state.shape, state.grid, state.x + 1, state.y, state.rotation)) {
+        state.x += 1;
+      }
+    },
+    moveLeft: (state) => {
+      if (canMoveTo(state.shape, state.grid, state.x - 1, state.y, state.rotation)) {
+        state.x -= 1;
+      }
+    },
+    moveDown: (state) => {
+      // If game is over or not running, don't do anything
+      if (!state.isRunning || state.gameOver) {
+        return;
+      }
+
+      const canMove = canMoveTo(state.shape, state.grid, state.x, state.y + 1, state.rotation);
       
-      case GAME_OVER:
-  
-        return state
-  
-      case RESTART:
-        return defaultState()
-  
-      default:
-        return state
+      if (canMove) {
+        state.y += 1;
+        return;
+      }
+
+      // If can't move down, place the piece
+      const blockResult = addBlockToGrid(state.shape, state.grid, state.x, state.y, state.rotation);
+      
+      if (blockResult.gameOver) {
+        state.gameOver = true;
+        state.isRunning = false;
+        return;
+      }
+
+      // Check for completed rows
+      const { grid: clearedGrid, score: points, completedRows } = checkRows(blockResult.grid);
+
+      // Update state with marked rows first
+      state.grid = clearedGrid;
+      state.score += points;
+      state.combo = points > 0 ? state.combo + 1 : 0;
+
+      // If we have completed rows, set a flag to handle the clearing
+      if (completedRows.length > 0) {
+        state.completedRows = completedRows;
+        state.isClearing = true;
+        
+        // We'll handle the actual row removal and new piece spawn after animation
+        return;
+      }
+
+      // If no completed rows, continue with new piece
+      state.shape = state.nextShape;
+      state.nextShape = randomShape();
+      state.x = 3;
+      state.y = -4;
+      state.rotation = 0;
+
+      // Update level and speed
+      const newLevel = Math.floor(state.score / 1000) + 1;
+      if (newLevel !== state.level) {
+        state.level = newLevel;
+        state.speed = Math.max(100, 1000 - (newLevel - 1) * 100);
+      }
+    },
+    clearRows: (state) => {
+      if (!state.isClearing || !state.completedRows) return;
+
+      // Remove completed rows
+      const gridWithoutCompleted = state.grid.filter((_, index) => !state.completedRows.includes(index));
+      
+      // Add new empty rows at the top
+      const emptyRows = Array(state.completedRows.length).fill().map(() => Array(10).fill(0));
+      state.grid = [...emptyRows, ...gridWithoutCompleted];
+
+      // Reset clearing state
+      state.isClearing = false;
+      state.completedRows = [];
+
+      // Spawn new piece
+      state.shape = state.nextShape;
+      state.nextShape = randomShape();
+      state.x = 3;
+      state.y = -4;
+      state.rotation = 0;
+
+      // Update level and speed
+      const newLevel = Math.floor(state.score / 1000) + 1;
+      if (newLevel !== state.level) {
+        state.level = newLevel;
+        state.speed = Math.max(100, 1000 - (newLevel - 1) * 100);
+      }
+    },
+    rotate: (state) => {
+      const newRotation = nextRotation(state.shape, state.rotation);
+      if (canMoveTo(state.shape, state.grid, state.x, state.y, newRotation)) {
+        state.rotation = newRotation;
+      }
+    },
+    gameOver: (state) => {
+      state.gameOver = true;
+      state.isRunning = false;
+    },
+    pause: (state) => {
+      state.isRunning = false;
+    },
+    resume: (state) => {
+      state.isRunning = true;
+    },
+    restart: () => defaultState(),
+    updatePowerUps: (state) => {
+      state.activePowerUps = state.activePowerUps.filter(powerUp => {
+        return Date.now() - powerUp.startTime < powerUp.type.duration;
+      });
     }
   }
-  
+});
 
-export default gameReducer
+export const { 
+  moveRight, 
+  moveLeft, 
+  moveDown, 
+  rotate, 
+  pause, 
+  resume, 
+  restart,
+  gameOver,
+  clearRows,
+  updatePowerUps
+} = gameSlice.actions;
+
+export default gameSlice.reducer;
